@@ -1,63 +1,137 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Hero from "@/components/Hero";
 import ProductCarousel from "@/components/ProductCarousel";
 import ShoppingCart, { CartItem } from "@/components/ShoppingCart";
 import PaymentModal from "@/components/PaymentModal";
+import SearchBar from "@/components/SearchBar";
+import PremiumPlanSection from "@/components/PremiumPlanSection";
+import SellerBanner from "@/components/SellerBanner";
 import { Product } from "@/components/ProductCard";
 
-// Sample products
+// Ecuadorian agricultural products
 const PRODUCTS: Product[] = [
   {
     id: "1",
-    name: "Tomates Orgánicos",
-    image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&h=300&fit=crop",
-    pricePerKg: 3.50,
+    name: "Banano Premium",
+    image: "https://images.unsplash.com/photo-1603833665858-e61d17a86224?w=400&h=300&fit=crop",
+    pricePerKg: 1.20,
     transportIncluded: true,
-    transporterName: "Transportes Rápidos SA",
-    description: "Tomates frescos cultivados orgánicamente, perfectos para ensaladas y salsas",
+    transporterName: "Transportes del Pacífico",
+    description: "Banano ecuatoriano de exportación, dulce y de textura perfecta",
+    isPremium: true,
+    isOrganic: true,
+    isProductOfYear: true,
+    sellerId: "seller-1",
+    sellerName: "Hacienda Valle Verde",
   },
   {
     id: "2",
-    name: "Papas Premium",
-    image: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&h=300&fit=crop",
-    pricePerKg: 2.20,
-    transportIncluded: false,
-    description: "Papas de primera calidad, ideales para todo tipo de preparaciones",
+    name: "Cacao Fino de Aroma",
+    image: "https://images.unsplash.com/photo-1511381939415-e44015466834?w=400&h=300&fit=crop",
+    pricePerKg: 8.50,
+    transportIncluded: true,
+    transporterName: "Logística Agro Express",
+    description: "Cacao ecuatoriano reconocido mundialmente por su calidad premium",
+    isPremium: true,
+    isOrganic: true,
+    sellerId: "seller-2",
+    sellerName: "Cacaoteros del Sur",
   },
   {
     id: "3",
-    name: "Zanahorias Frescas",
-    image: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&h=300&fit=crop",
-    pricePerKg: 2.80,
-    transportIncluded: true,
-    transporterName: "Logística Verde SRL",
-    description: "Zanahorias dulces y crujientes, ricas en vitaminas",
+    name: "Café Arábigo",
+    image: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=300&fit=crop",
+    pricePerKg: 12.00,
+    transportIncluded: false,
+    description: "Café de altura cultivado en las montañas andinas",
+    isPremium: false,
+    isOrganic: true,
+    sellerId: "seller-3",
+    sellerName: "Café de los Andes",
   },
   {
     id: "4",
-    name: "Lechugas Hidropónicas",
-    image: "https://images.unsplash.com/photo-1622206151226-18ca2c9ab4a1?w=400&h=300&fit=crop",
-    pricePerKg: 4.50,
+    name: "Arroz Premium",
+    image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=300&fit=crop",
+    pricePerKg: 2.80,
     transportIncluded: true,
-    transporterName: "Express Campo SA",
-    description: "Lechugas cultivadas en sistema hidropónico, ultra frescas",
+    transporterName: "Distribuidora Nacional",
+    description: "Arroz de grano largo, ideal para todo tipo de platillos",
+    isPremium: true,
+    sellerId: "seller-4",
+    sellerName: "Arrocera San Luis",
   },
   {
     id: "5",
-    name: "Cebollas",
-    image: "https://images.unsplash.com/photo-1587914801974-c0ffb97a5f10?w=400&h=300&fit=crop",
-    pricePerKg: 1.80,
+    name: "Maíz Amarillo",
+    image: "https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=400&h=300&fit=crop",
+    pricePerKg: 1.50,
     transportIncluded: false,
-    description: "Cebollas de excelente calidad y larga duración",
+    description: "Maíz fresco de la costa ecuatoriana",
+    sellerId: "seller-5",
+    sellerName: "Agrícola Costa Dorada",
   },
   {
     id: "6",
-    name: "Pimientos Mixtos",
-    image: "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400&h=300&fit=crop",
-    pricePerKg: 4.20,
+    name: "Papa Chola",
+    image: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&h=300&fit=crop",
+    pricePerKg: 1.80,
     transportIncluded: true,
-    transporterName: "Distribuidora Regional",
-    description: "Variedad de pimientos rojos, verdes y amarillos",
+    transporterName: "Transporte Sierra",
+    description: "Papa de altura de la sierra ecuatoriana, perfecta para locro y fritada",
+    isPremium: false,
+    isProductOfYear: true,
+    sellerId: "seller-6",
+    sellerName: "Papas del Chimborazo",
+  },
+  {
+    id: "7",
+    name: "Tomate Riñón",
+    image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&h=300&fit=crop",
+    pricePerKg: 2.20,
+    transportIncluded: false,
+    description: "Tomate riñón fresco y jugoso",
+    sellerId: "seller-7",
+    sellerName: "Hortalizas del Valle",
+  },
+  {
+    id: "8",
+    name: "Piña Golden",
+    image: "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=400&h=300&fit=crop",
+    pricePerKg: 1.80,
+    transportIncluded: true,
+    transporterName: "Frutas Express",
+    description: "Piña dulce y aromática, perfecta para jugos y postres",
+    isPremium: true,
+    isOrganic: false,
+    sellerId: "seller-8",
+    sellerName: "Tropical Fruits Co.",
+  },
+  {
+    id: "9",
+    name: "Mango de Exportación",
+    image: "https://images.unsplash.com/photo-1553279768-865429fa0078?w=400&h=300&fit=crop",
+    pricePerKg: 3.20,
+    transportIncluded: true,
+    transporterName: "Logística Tropical",
+    description: "Mango ecuatoriano de pulpa dulce y jugosa",
+    isPremium: false,
+    isOrganic: true,
+    sellerId: "seller-9",
+    sellerName: "Mangos del Guayas",
+  },
+  {
+    id: "10",
+    name: "Aguacate Hass",
+    image: "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=400&h=300&fit=crop",
+    pricePerKg: 4.50,
+    transportIncluded: false,
+    description: "Aguacate Hass cremoso y nutritivo",
+    isPremium: true,
+    isOrganic: true,
+    isProductOfYear: false,
+    sellerId: "seller-10",
+    sellerName: "Aguacates Premium",
   },
 ];
 
@@ -65,6 +139,25 @@ const Index = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [userType, setUserType] = useState<"buyer" | "seller" | null>(null);
+
+  const filteredProducts = useMemo(() => {
+    if (!searchQuery.trim()) return PRODUCTS;
+    
+    const query = searchQuery.toLowerCase();
+    return PRODUCTS.filter(product => 
+      product.name.toLowerCase().includes(query)
+    );
+  }, [searchQuery]);
+
+  const sortedProducts = useMemo(() => {
+    return [...filteredProducts].sort((a, b) => {
+      if (a.isPremium && !b.isPremium) return -1;
+      if (!a.isPremium && b.isPremium) return 1;
+      return 0;
+    });
+  }, [filteredProducts]);
 
   const handleAddToCart = (product: Product, kg: number) => {
     setCartItems((prev) => {
@@ -104,8 +197,35 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Hero />
-      <ProductCarousel products={PRODUCTS} onAddToCart={handleAddToCart} />
+      <Hero 
+        onCartClick={() => setIsCartOpen(true)} 
+        userType={userType}
+        onUserTypeChange={setUserType}
+      />
+      
+      <section className="py-12 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <SearchBar value={searchQuery} onChange={setSearchQuery} />
+        </div>
+      </section>
+
+      <section id="productos">
+        <ProductCarousel products={sortedProducts} onAddToCart={handleAddToCart} />
+      </section>
+      
+      {sortedProducts.length === 0 && (
+        <section className="py-20">
+          <div className="container mx-auto px-4 text-center">
+            <p className="text-xl text-muted-foreground">
+              No se encontraron productos que coincidan con "{searchQuery}"
+            </p>
+          </div>
+        </section>
+      )}
+
+      <PremiumPlanSection />
+
+      <SellerBanner />
       
       <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4 text-center">
@@ -115,27 +235,27 @@ const Index = () => {
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-2xl font-bold text-primary">
                 1
               </div>
-              <h3 className="text-xl font-semibold">Elige tus productos</h3>
+              <h3 className="text-xl font-semibold">Busca lo que necesitas</h3>
               <p className="text-muted-foreground">
-                Selecciona productos frescos de agricultores locales
+                Encuentra productos agrícolas de calidad premium
               </p>
             </div>
             <div className="space-y-3">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-2xl font-bold text-primary">
                 2
               </div>
-              <h3 className="text-xl font-semibold">Agrega al carrito</h3>
+              <h3 className="text-xl font-semibold">Contacta al proveedor</h3>
               <p className="text-muted-foreground">
-                Indica la cantidad en kilogramos que necesitas
+                Negocia directamente con agricultores verificados
               </p>
             </div>
             <div className="space-y-3">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-2xl font-bold text-primary">
                 3
               </div>
-              <h3 className="text-xl font-semibold">Recibe en tu puerta</h3>
+              <h3 className="text-xl font-semibold">Recibe tu pedido</h3>
               <p className="text-muted-foreground">
-                Te lo llevamos con transporte incluido o sin él
+                Productos frescos con logística incluida
               </p>
             </div>
           </div>
@@ -144,9 +264,9 @@ const Index = () => {
 
       <footer className="bg-foreground text-background py-12">
         <div className="container mx-auto px-4 text-center">
-          <h3 className="text-2xl font-bold mb-4">Marketplace Campo Mesa</h3>
+          <h3 className="text-2xl font-bold mb-4">AgroConnect</h3>
           <p className="text-background/80 mb-6">
-            Conectando el campo con tu mesa
+            Conectando agricultores con PYMEs de Ecuador
           </p>
           <div className="flex flex-wrap justify-center gap-6 text-sm text-background/70">
             <a href="#" className="hover:text-background transition-colors">Sobre Nosotros</a>
@@ -155,19 +275,21 @@ const Index = () => {
             <a href="#" className="hover:text-background transition-colors">Contacto</a>
           </div>
           <p className="text-xs text-background/60 mt-8">
-            © 2025 Marketplace Campo Mesa. Todos los derechos reservados.
+            © 2025 AgroConnect. Todos los derechos reservados.
           </p>
         </div>
       </footer>
 
-      <ShoppingCart
-        items={cartItems}
-        onUpdateQuantity={handleUpdateQuantity}
-        onRemoveItem={handleRemoveItem}
-        onCheckout={handleCheckout}
-        isOpen={isCartOpen}
-        onOpenChange={setIsCartOpen}
-      />
+      {userType === "buyer" && (
+        <ShoppingCart
+          items={cartItems}
+          onUpdateQuantity={handleUpdateQuantity}
+          onRemoveItem={handleRemoveItem}
+          onCheckout={handleCheckout}
+          isOpen={isCartOpen}
+          onOpenChange={setIsCartOpen}
+        />
+      )}
 
       <PaymentModal
         isOpen={isPaymentOpen}

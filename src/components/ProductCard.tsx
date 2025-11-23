@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { ShoppingCart, Truck, X, Plus, Minus } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Award, Leaf, TrendingUp } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 export interface Product {
@@ -13,6 +14,11 @@ export interface Product {
   transportIncluded: boolean;
   transporterName?: string;
   description: string;
+  isPremium?: boolean;
+  isOrganic?: boolean;
+  isProductOfYear?: boolean;
+  sellerId: string;
+  sellerName: string;
 }
 
 interface ProductCardProps {
@@ -22,100 +28,139 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const [kg, setKg] = useState(1);
+  const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
 
-  const handleAddToCart = () => {
-    if (kg > 0) {
-      onAddToCart(product, kg);
-      toast.success(`${kg} kg de ${product.name} agregado al carrito`);
-      setKg(1);
-    }
+  const handleIncrement = () => setKg((prev) => Math.min(prev + 1, 1000));
+  const handleDecrement = () => setKg((prev) => Math.max(prev - 1, 1));
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value) || 1;
+    setKg(Math.max(1, Math.min(value, 1000)));
   };
 
-  const incrementKg = () => setKg(prev => Math.min(prev + 1, 100));
-  const decrementKg = () => setKg(prev => Math.max(prev - 1, 0.5));
+  const handleCardClick = () => {
+    navigate(`/vendedor/${product.sellerId}`);
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddToCart(product, kg);
+    toast.success(`${kg} kg de ${product.name} agregado al carrito`);
+  };
+
+  const handleQuantityClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
 
   return (
-    <Card className="group relative overflow-hidden bg-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
-      <div className="relative h-56 overflow-hidden">
+    <Card
+      className={`group overflow-hidden transition-all duration-300 cursor-pointer ${
+        product.isPremium
+          ? "border-2 border-premium shadow-premium hover:shadow-premium/60"
+          : "hover:shadow-card"
+      }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={handleCardClick}
+    >
+      <div className="relative overflow-hidden h-48 bg-muted">
         <img
           src={product.image}
           alt={product.name}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+          className={`w-full h-full object-cover transition-transform duration-500 ${
+            isHovered ? "scale-110 -translate-y-2" : "scale-100"
+          }`}
         />
-        <div className="absolute top-3 right-3">
-          {product.transportIncluded ? (
-            <div className="flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-md">
-              <Truck className="h-3.5 w-3.5" />
-              <span>Transporte incluido</span>
+        
+        {product.isPremium && (
+          <div className="absolute top-3 right-3 bg-premium text-premium-foreground px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
+            <Award className="w-3 h-3" />
+            PREMIUM
+          </div>
+        )}
+
+        {isHovered && (
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 animate-fade-in">
+            <div className="flex gap-2 justify-center">
+              {product.isOrganic && (
+                <div className="bg-accent text-accent-foreground px-2 py-1 rounded text-xs font-semibold flex items-center gap-1">
+                  <Leaf className="w-3 h-3" />
+                  Orgánico
+                </div>
+              )}
+              {product.isProductOfYear && (
+                <div className="bg-premium text-premium-foreground px-2 py-1 rounded text-xs font-semibold flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  Producto del Año
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="flex items-center gap-1 rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-md">
-              <X className="h-3.5 w-3.5" />
-              <span>Sin transporte</span>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
-      <div className="flex flex-col flex-1 p-5">
-        <div className="flex-1">
-          <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-            {product.name}
-          </h3>
-          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-            {product.description}
-          </p>
-          {product.transporterName && (
-            <p className="text-xs text-muted-foreground mb-3">
-              Transportista: <span className="font-medium">{product.transporterName}</span>
-            </p>
-          )}
-          <div className="text-3xl font-bold text-primary mb-4">
-            ${product.pricePerKg.toFixed(2)}
-            <span className="text-base text-muted-foreground ml-1">/kg</span>
-          </div>
+      <CardContent className="p-4 space-y-3">
+        <div>
+          <h3 className="font-semibold text-lg text-card-foreground">{product.name}</h3>
+          <p className="text-sm text-muted-foreground">{product.sellerName}</p>
         </div>
-
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Button
-              size="icon"
-              variant="outline"
-              onClick={decrementKg}
-              className="h-9 w-9"
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-            <Input
-              type="number"
-              min="0.5"
-              step="0.5"
-              max="100"
-              value={kg}
-              onChange={(e) => setKg(Math.max(0.5, parseFloat(e.target.value) || 0.5))}
-              className="text-center font-medium"
-            />
-            <Button
-              size="icon"
-              variant="outline"
-              onClick={incrementKg}
-              className="h-9 w-9"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-            <span className="text-sm text-muted-foreground whitespace-nowrap">kg</span>
+        
+        <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
+        
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-2xl font-bold text-primary">${product.pricePerKg.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">por kilogramo</p>
           </div>
+          
+          {product.transportIncluded && (
+            <div className="bg-accent/10 text-accent px-2 py-1 rounded text-xs font-semibold">
+              Transporte incluido
+            </div>
+          )}
+        </div>
+      </CardContent>
 
+      <CardFooter className="p-4 pt-0 flex gap-2" onClick={handleQuantityClick}>
+        <div className="flex items-center border rounded-md">
           <Button
-            onClick={handleAddToCart}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-            size="lg"
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDecrement();
+            }}
           >
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            Agregar ${(product.pricePerKg * kg).toFixed(2)}
+            <Minus className="w-4 h-4" />
+          </Button>
+          <Input
+            type="number"
+            value={kg}
+            onChange={handleInputChange}
+            onClick={(e) => e.stopPropagation()}
+            className="w-16 h-9 text-center border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+            min="1"
+            max="1000"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleIncrement();
+            }}
+          >
+            <Plus className="w-4 h-4" />
           </Button>
         </div>
-      </div>
+        
+        <Button onClick={handleAddToCart} className="flex-1 bg-primary hover:bg-primary/90">
+          <ShoppingCart className="w-4 h-4 mr-2" />
+          Agregar
+        </Button>
+      </CardFooter>
     </Card>
   );
 };

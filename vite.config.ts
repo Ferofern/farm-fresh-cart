@@ -5,11 +5,17 @@ import { componentTagger } from "lovable-tagger"
 
 export default defineConfig({
   base: "/farm-fresh-cart/",
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   build: {
     rollupOptions: {
       output: {
-        manualChunks: undefined
-      }
-    }
-  }
+        manualChunks: undefined,
+      },
+    },
+  },
 })

@@ -12,6 +12,7 @@ export default defineConfig({
     },
   },
   build: {
+    outDir: "docs", // ESTA ES LA LINEA CRUCIAL
     rollupOptions: {
       output: {
         manualChunks: undefined,

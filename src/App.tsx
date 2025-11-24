@@ -14,7 +14,8 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      {/* SOLUCIÓN: Añadir basename para coincidir con la URL de GitHub Pages */}
+      <BrowserRouter basename="/farm-fresh-cart/"> 
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/vendedor/:sellerId" element={<SellerProfile />} />
